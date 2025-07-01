@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <style>
+  * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(5px);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #00f7ff;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    main {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    main {
+      padding: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    button {
+      margin-right: 0.5rem;
+      padding: 0.4rem 0.7rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .btn-update {
+      background-color: #4caf50;
+    }
+
+    .btn-delete {
+      background-color: #f44336;
+    }
+
+    .form-popup {
+      display: none;
+      background: #fff;
+      color: #000;
+      padding: 1.5rem;
+      border-radius: 10px;
+      position: fixed;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      z-index: 999;
+      width: 450px;
+    }
+
+    .form-popup input,
+    .form-popup select {
+      display: block;
+      margin-bottom: 1rem;
+      width: 100%;
+      padding: 0.5rem;
+    }
+
+    .form-popup button {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .form-popup .close {
+      background-color: #888;
+      float: right;
+      margin-top: 1rem;
+    }
+    .logout-btn {
+    background-color: #ff5252;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+    background-color: #ff1744;
+    }
+  </style>
+</head>
+<body>
+    <header>
+        <div class="logo">SmartIoT</div>
+        <nav>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="device.html">Device Setting</a>
+          <a href="user.html">User Management</a>
+          <button onclick="logout()" class="logout-btn">Logout</button>
+        </nav>
+      </header>
+
+    <header>User Management</header>
+
+<main>
+  <table id="userTable">
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Devices</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<div class="form-popup" id="updateForm">
+  <h3>Update User</h3>
+  <input type="text" id="updateFullName" placeholder="Full Name" />
+  <select id="updateDevices" multiple></select>
+  <select id="updateRole">
+    <option value="user">User</option>
+    <option value="admin">Admin</option>
+  </select>
+  <button onclick="submitUpdate()">Update</button>
+  <button class="close" onclick="closeUpdateForm()">Cancel</button>
+</div>
+
+<script>
+  let currentUpdateEmail = "";
+  let allDevicesMap = new Map();
+
+  function showToast(msg, type = "success") {
+    Toastify({
+      text: msg,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: type === "success" ? "#4BB543" : "#FF3E3E",
+      close: true
+    }).showToast();
+  }
+
+  async function fetchUsers() {
+    try {
+      const devicesRes = await axios.get("http://localhost:3000/findAllDevices");
+      const devices = devicesRes.data;
+      allDevicesMap.clear();
+      devices.forEach(device => {
+        allDevicesMap.set(device._id, device.name);
+      });
+
+      const usersRes = await axios.get("http://localhost:3000/findAllUsers");
+      const tbody = document.querySelector("#userTable tbody");
+      tbody.innerHTML = "";
+
+      usersRes.data.forEach(user => {
+        const tr = document.createElement("tr");
+
+        const formattedDevices = user.devices
+          .map(deviceId => {
+            const name = allDevicesMap.get(deviceId) || "Unknown";
+            return `${name} - ( ${deviceId} )`;
+          })
+          .join("<br>");
+
+        tr.innerHTML = `
+          <td>${user.fullName}</td>
+          <td>${user.email}</td>
+          <td>${user.role}</td>
+          <td>${formattedDevices}</td>
+          <td>
+            <button class="btn-update" onclick='openUpdateForm(${JSON.stringify(user)})'>Update</button>
+            <button class="btn-delete" onclick="deleteUser('${user.email}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to load data", "error");
+    }
+  }
+
+  function deleteUser(email) {
+    axios.delete("http://localhost:3000/deleteUser", {
+      data: { email }
+    })
+    .then(() => {
+      showToast("User deleted");
+      fetchUsers();
+    })
+    .catch(err => {
+      console.error(err);
+      showToast("Delete failed", "error");
+    });
+  }
+
+  function openUpdateForm(user) {
+  currentUpdateEmail = user.email;
+  document.getElementById("updateFullName").value = user.fullName;
+  document.getElementById("updateRole").value = user.role;
+
+  const devicesSelect = document.getElementById("updateDevices");
+  devicesSelect.innerHTML = "";
+
+  allDevicesMap.forEach((name, id) => {
+    const option = document.createElement("option");
+    option.value = id;
+    option.text = name;
+    if (user.devices.includes(id)) {
+      option.selected = true;
+    }
+    devicesSelect.appendChild(option);
+  });
+
+  document.getElementById("updateForm").style.display = "block";
+}
+
+
+  function closeUpdateForm() {
+    document.getElementById("updateForm").style.display = "none";
+  }
+
+  function submitUpdate() {
+    const fullName = document.getElementById("updateFullName").value;
+    const role = document.getElementById("updateRole").value;
+    const selectedDeviceIds = Array.from(document.getElementById("updateDevices").selectedOptions).map(opt => opt.value);
+
+    axios.put("http://localhost:3000/updateUser", {
+      email: currentUpdateEmail,
+      fullName,
+      role,
+      devices: selectedDeviceIds
+    })
+    .then(() => {
+      showToast("User updated");
+      closeUpdateForm();
+      fetchUsers();
+    })
+    .catch(err => {
+      console.error(err);
+      showToast("Update failed", "error");
+    });
+  }
+
+  function logout() {
+    window.location.href = 'index.html';
+  }
+
+
+  fetchUsers();
+
+  
+      function updateNavByRole() {
+        const role = localStorage.getItem("userRole");
+        // Get nav links/buttons
+        const dashboardLink = document.querySelector(
+          "nav a[href='dashboard.html']"
+        );
+        const deviceLink = document.querySelector("nav a[href='device.html']");
+        const userLink = document.querySelector("nav a[href='user.html']");
+
+        // By default show all
+        if (dashboardLink) dashboardLink.style.display = "";
+        if (deviceLink) deviceLink.style.display = "";
+        if (userLink) userLink.style.display = "";
+
+        // If not admin, hide Device Setting and User Management
+        if (role !== "admin") {
+          if (deviceLink) deviceLink.style.display = "none";
+          if (userLink) userLink.style.display = "none";
+        }
+      }
+
+      // Run on page load
+      updateNavByRole();
+
+      
+</script>
+
+</body>
+</html>

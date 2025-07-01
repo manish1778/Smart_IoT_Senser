@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IoT Login</title>
+  <style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  animation: fadeIn 0.6s ease-in-out;
+  position: relative;
+  margin-top: 20px;
+}
+
+/* IoT Branding */
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo img {
+  width: 60px;
+  height: 60px;
+}
+
+.logo h1 {
+  font-size: 24px;
+  margin-top: 8px;
+  color: #333;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+input:focus {
+  border-color: #6e8efb;
+  outline: none;
+}
+
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(to right, #6e8efb, #a777e3);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+p {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+a {
+  color: #6e8efb;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#welcomeScreen h2 {
+  color: #444;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- IoT Logo -->
+    <div class="logo">
+      <img src="iot_logo.png" alt="IoT Logo" />
+      <h1>SmartIoT</h1>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <h2>Login</h2>
+      <input type="email" id="loginEmail" placeholder="Email Address" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" style="display: none;">
+      <h2>Sign Up</h2>
+      <input type="text" id="signupFullName" placeholder="Full Name" />
+      <input type="email" id="signupEmail" placeholder="Email Address" />
+      <input type="password" id="signupPassword" placeholder="Create a Password" />
+      <button onclick="signup()">Sign Up</button>
+      <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+    </div>
+
+
+  </div>
+<!-- Toastify + Axios + script -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+function showToast(message, type = "success") {
+  Toastify({
+    text: message,
+    duration: 3000,
+    gravity: "top", 
+    position: "right", 
+    backgroundColor: type === "success" ? "#4BB543" : "#FF3E3E",
+    close: true,
+    stopOnFocus: true,
+  }).showToast();
+}
+
+function signup() {
+  const fullName = document.getElementById("signupFullName").value.trim();
+  const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+  const password = document.getElementById("signupPassword").value;
+
+  if (!fullName || !email || !password) {
+    showToast("Please fill in all fields.", "error");
+    return;
+  }
+
+  axios.post('http://localhost:3000/insertUser', {
+    fullName,
+    email,
+    password
+  })
+  .then(response => {
+    if (response.status === 201 && response.data.success) {
+      showToast("Sign up successful! You can now log in.", "success");
+      showLogin();
+    } else {
+      showToast("Signup failed. Please try again.", "error");
+    }
+  })
+  .catch(error => {
+    console.error("Signup error:", error);
+    showToast("Signup failed. Please try again later.", "error");
+  });
+}
+
+function showSignup() {
+  document.getElementById("loginForm").style.display = "none";
+  document.getElementById("signupForm").style.display = "block";
+}
+
+function showLogin() {
+  document.getElementById("signupForm").style.display = "none";
+  document.getElementById("loginForm").style.display = "block";
+}
+
+function login() {
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password) {
+    showToast("Please enter email and password.", "error");
+    return;
+  }
+
+  axios.post('http://localhost:3000/login', {
+    email,
+    password
+  })
+  .then(response => {
+    if (response.status === 200 && response.data.success) {
+       localStorage.setItem('userRole', response.data.role);
+      showToast("Login successful!", "success");
+      setTimeout(() => {
+        window.location.href = "dashboard.html"; // redirect after short delay
+      }, 1000);
+    } else {
+      showToast(response.data.message || "Login failed", "error");
+    }
+  })
+  .catch(error => {
+    if (error.response) {
+      showToast(error.response.data.message || "Login failed", "error");
+    } else {
+      console.error("Login error:", error);
+      showToast("Something went wrong. Try again later.", "error");
+    }
+  });
+}
+</script>
+</body>
+</html>

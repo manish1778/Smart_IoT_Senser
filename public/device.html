@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Device Management</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+  * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(5px);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #00f7ff;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    main {
+      padding: 2rem;
+      text-align: center;
+    }
+
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .insert-form {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .insert-form input {
+      padding: 10px;
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .insert-form button {
+      padding: 10px 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .insert-form button:hover {
+      background-color: #388e3c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    button {
+      padding: 6px 12px;
+      margin: 2px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .btn-update {
+      background-color: #4caf50;
+    }
+
+    .btn-delete {
+      background-color: #f44336;
+    }
+
+    #updateForm {
+      display: none;
+      background: #fff;
+      color: #000;
+      padding: 1.5rem;
+      border-radius: 10px;
+      position: fixed;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      z-index: 999;
+      width: 450px;
+    }
+
+    #updateForm input {
+      display: block;
+      margin-bottom: 1rem;
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-header button {
+      background-color: transparent;
+      color: red;
+      font-size: 24px;
+      border: none;
+      cursor: pointer;
+    }
+    .logout-btn {
+    background-color: #ff5252;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    }
+
+    .logout-btn:hover {
+    background-color: #ff1744;
+    }
+
+  </style>
+</head>
+<body>
+    <header>
+        <div class="logo">SmartIoT</div>
+        <nav>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="device.html">Device Setting</a>
+          <a href="user.html">User Management</a>
+          <button onclick="logout()" class="logout-btn">Logout</button>
+        </nav>
+      </header>
+
+    <header>Device Management</header>
+
+    <main>
+  <div class="insert-form">
+    <input type="text" id="name" placeholder="Device Name" />
+    <input type="text" id="location" placeholder="Location" />
+    <input type="text" id="topic" placeholder="Topic" />
+    <button onclick="insertDevice()">Add Device</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Topic</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="deviceTableBody"></tbody>
+  </table>
+
+  <div id="updateForm">
+    <div class="form-header">
+      <h3>Update Device</h3>
+      <button onclick="closeUpdateDialog()">×</button>
+    </div>
+    <input type="hidden" id="updateId" />
+    <input type="text" id="updateName" placeholder="Name" />
+    <input type="text" id="updateLocation" placeholder="Location" />
+    <input type="text" id="updateTopic" placeholder="Topic" />
+    <button class="btn-update" onclick="submitUpdate()">Save</button>
+  </div>
+  </main>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function fetchDevices() {
+  try {
+    const res = await axios.get('http://localhost:3000/findAllDevices');
+    const devices = res.data;
+    const tbody = document.getElementById("deviceTableBody");
+    tbody.innerHTML = '';
+    devices.forEach(device => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${device.name}</td>
+        <td>${device.location}</td>
+        <td>${device.topic}</td>
+        <td>
+          <button class="btn-update" onclick="showUpdateDialog('${device._id}','${device.name}','${device.location}','${device.topic}')">Update</button>
+          <button class="btn-delete" onclick="deleteDevice('${device._id}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(err) {
+    alert("Failed to load devices!");
+  }
+}
+
+async function insertDevice() {
+  try {
+    const name = document.getElementById("name").value;
+    const location = document.getElementById("location").value;
+    const topic = document.getElementById("topic").value;
+    await axios.post('http://localhost:3000/insertDevice', { name, location, topic });
+    document.getElementById("name").value = '';
+    document.getElementById("location").value = '';
+    document.getElementById("topic").value = '';
+    fetchDevices();
+  } catch(err) {
+    alert("Could not add device.");
+  }
+}
+
+function showUpdateDialog(id, name, location, topic) {
+  document.getElementById("updateId").value = id;
+  document.getElementById("updateName").value = name;
+  document.getElementById("updateLocation").value = location;
+  document.getElementById("updateTopic").value = topic;
+  document.getElementById("updateForm").style.display = 'block';
+}
+
+function closeUpdateDialog() {
+  document.getElementById("updateForm").style.display = 'none';
+}
+
+async function submitUpdate() {
+  try {
+    const deviceId = document.getElementById("updateId").value;
+    const name = document.getElementById("updateName").value;
+    const location = document.getElementById("updateLocation").value;
+    const topic = document.getElementById("updateTopic").value;
+    await axios.put('http://localhost:3000/updateDevice', { deviceId, name, location, topic });
+    closeUpdateDialog();
+    fetchDevices();
+  } catch(err) {
+    alert("Could not update device.");
+  }
+}
+
+async function deleteDevice(deviceId) {
+  try {
+    await axios.delete('http://localhost:3000/deleteDevice', { data: { deviceId } });
+    fetchDevices();
+  } catch(err) {
+    alert("Could not delete device.");
+  }
+}
+
+function logout() {
+  window.location.href = 'login.html';
+}
+
+document.addEventListener('DOMContentLoaded', fetchDevices)
+
+
+
+      function updateNavByRole() {
+        const role = localStorage.getItem("userRole");
+        // Get nav links/buttons
+        const dashboardLink = document.querySelector(
+          "nav a[href='dashboard.html']"
+        );
+        const deviceLink = document.querySelector("nav a[href='device.html']");
+        const userLink = document.querySelector("nav a[href='user.html']");
+
+        // By default show all
+        if (dashboardLink) dashboardLink.style.display = "";
+        if (deviceLink) deviceLink.style.display = "";
+        if (userLink) userLink.style.display = "";
+
+        // If not admin, hide Device Setting and User Management
+        if (role !== "admin") {
+          if (deviceLink) deviceLink.style.display = "none";
+          if (userLink) userLink.style.display = "none";
+        }
+      }
+
+      // Run on page load
+      updateNavByRole();
+
+      
+</script>
+</body>
+</html>
