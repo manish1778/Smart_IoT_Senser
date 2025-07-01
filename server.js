@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require('mongoose');
+const cors = require('cors');
 const app = express();
 
 const http = require("http");
@@ -9,6 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.json());
+app.use(cors());
 app.use(express.static(path.join(__dirname , "public")));
 
 const userSchema = new mongoose.Schema({
