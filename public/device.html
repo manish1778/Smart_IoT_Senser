@@ -236,7 +236,7 @@
 <script>
 async function fetchDevices() {
   try {
-    const res = await axios.get('http://localhost:3000/findAllDevices');
+    const res = await axios.get('https://smart-iot-senser.onrender.com:3000/findAllDevices');
     const devices = res.data;
     const tbody = document.getElementById("deviceTableBody");
     tbody.innerHTML = '';
@@ -263,7 +263,7 @@ async function insertDevice() {
     const name = document.getElementById("name").value;
     const location = document.getElementById("location").value;
     const topic = document.getElementById("topic").value;
-    await axios.post('http://localhost:3000/insertDevice', { name, location, topic });
+    await axios.post('https://smart-iot-senser.onrender.com:3000/insertDevice', { name, location, topic });
     document.getElementById("name").value = '';
     document.getElementById("location").value = '';
     document.getElementById("topic").value = '';
@@ -291,7 +291,7 @@ async function submitUpdate() {
     const name = document.getElementById("updateName").value;
     const location = document.getElementById("updateLocation").value;
     const topic = document.getElementById("updateTopic").value;
-    await axios.put('http://localhost:3000/updateDevice', { deviceId, name, location, topic });
+    await axios.put('https://smart-iot-senser.onrender.com:3000/updateDevice', { deviceId, name, location, topic });
     closeUpdateDialog();
     fetchDevices();
   } catch(err) {
@@ -301,7 +301,7 @@ async function submitUpdate() {
 
 async function deleteDevice(deviceId) {
   try {
-    await axios.delete('http://localhost:3000/deleteDevice', { data: { deviceId } });
+    await axios.delete('https://smart-iot-senser.onrender.com:3000/deleteDevice', { data: { deviceId } });
     fetchDevices();
   } catch(err) {
     alert("Could not delete device.");

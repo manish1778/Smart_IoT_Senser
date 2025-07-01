@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require('mongoose');
-const cors = require('cors');
 const app = express();
 
 const http = require("http");
@@ -9,14 +8,7 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const io = new Server(server);
 
-var corsOptions = {
-  origin: process.env.ORIGIN,
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
-
 app.use(express.json());
-
-app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname , "public")));
 
 const userSchema = new mongoose.Schema({
@@ -111,7 +103,7 @@ app.post("/insertUser", async (request, response) => {
         const email = request.body.email;
         const password = request.body.password;
 
-        await mongoose.connect('mongodb://localhost:27017/iotdb');
+        await mongoose.connect(process.env.DB_ENV);
 
         await UserModel.insertOne(
             { "fullName": fullName, "email": email, "password": password } 
@@ -130,7 +122,7 @@ app.post("/login", async (request, response) => {
         const email = request.body.email;
         const password = request.body.password;
 
-        await mongoose.connect('mongodb://localhost:27017/iotdb');
+        await mongoose.connect(process.env.DB_ENV);
 
         const user = await UserModel.findOne({ email: email });
 
@@ -167,7 +159,7 @@ app.put("/updateUser", async (request, response) => {
         const devices = request.body.devices;
         const role = request.body.role;
 
-        await mongoose.connect('mongodb://localhost:27017/iotdb');
+        await mongoose.connect(process.env.DB_ENV);
         await UserModel.updateOne(
             { "email": email },
             { $set: { "fullName": fullName, "devices": devices, "role": role } }
@@ -185,7 +177,7 @@ app.delete("/deleteUser", async (request, response) => {
     try {
         const email = request.body.email;
 
-        await mongoose.connect('mongodb://localhost:27017/iotdb');
+        await mongoose.connect(process.env.DB_ENV);
         await UserModel.deleteOne({ "email": email });
         response.status(200).send("User doc is deleted successfully")
     } catch(error){
@@ -202,7 +194,7 @@ app.post("/insertDevice", async (request, response) => {
       const location = request.body.location;
       const topic = request.body.topic
 
-      await mongoose.connect('mongodb://localhost:27017/iotdb');
+      await mongoose.connect(process.env.DB_ENV);
 
       await DeviceModel.insertOne(
           { "name": name, "location": location, "topic": topic } 
@@ -219,7 +211,7 @@ app.post("/insertDevice", async (request, response) => {
 app.get("/findAllDevices", async (request, response) => {
   try {
 
-    await mongoose.connect('mongodb://localhost:27017/iotdb');
+    await mongoose.connect(process.env.DB_ENV);
 
     const result = await DeviceModel.find({}).lean();
 
@@ -236,7 +228,7 @@ app.delete("/deleteDevice", async (request, response) => {
   try {
       const deviceId = request.body.deviceId;
 
-      await mongoose.connect('mongodb://localhost:27017/iotdb');
+      await mongoose.connect(process.env.DB_ENV);
       await DeviceModel.deleteOne({ "_id": deviceId });
       response.status(200).send("Device doc is deleted successfully")
   } catch(error){
@@ -253,7 +245,7 @@ app.put("/updateDevice", async (request, response) => {
       const location = request.body.location;
       const topic = request.body.topic;
 
-      await mongoose.connect('mongodb://localhost:27017/iotdb');
+      await mongoose.connect(process.env.DB_ENV);
       await DeviceModel.updateOne(
           { "_id": deviceId },
           { $set: { "name": name, "location": location, "topic": topic } }

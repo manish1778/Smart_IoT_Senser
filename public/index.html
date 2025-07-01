@@ -181,7 +181,7 @@ function signup() {
     return;
   }
 
-  axios.post('http://localhost:3000/insertUser', {
+  axios.post('https://smart-iot-senser.onrender.com:3000/insertUser', {
     fullName,
     email,
     password
@@ -219,7 +219,7 @@ function login() {
     return;
   }
 
-  axios.post('http://localhost:3000/login', {
+  axios.post('https://smart-iot-senser.onrender.com:3000/login', {
     email,
     password
   })
