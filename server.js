@@ -9,8 +9,14 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const io = new Server(server);
 
+var corsOptions = {
+  origin: process.env.ORIGIN,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
 app.use(express.json());
-app.use(cors());
+
+app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname , "public")));
 
 const userSchema = new mongoose.Schema({
