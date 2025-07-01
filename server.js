@@ -63,7 +63,13 @@ const DeviceModel = mongoose.model('device', deviceSchema);
 
 const mqtt = require('mqtt');
 
-const client = mqtt.connect('mqtt://localhost:1883');
+const client = mqtt.connect({
+  host: process.env.MQTT_HOST,
+  port: parseInt(process.env.MQTT_PORT),
+  protocol: "mqtts",  // Secure MQTT
+  username: process.env.MQTT_USERNAME,
+  password: process.env.MQTT_PASSWORD,
+});
 
 client.on('connect', () => {
   client.subscribe('GATEWAY1/#');
