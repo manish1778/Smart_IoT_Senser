@@ -204,14 +204,14 @@
 
   async function fetchUsers() {
     try {
-      const devicesRes = await axios.get("https://smart-iot-senser.onrender.com:3000/findAllDevices");
+      const devicesRes = await axios.get("https://smart-iot-senser.onrender.com/findAllDevices");
       const devices = devicesRes.data;
       allDevicesMap.clear();
       devices.forEach(device => {
         allDevicesMap.set(device._id, device.name);
       });
 
-      const usersRes = await axios.get("https://smart-iot-senser.onrender.com:3000/findAllUsers");
+      const usersRes = await axios.get("https://smart-iot-senser.onrender.com/findAllUsers");
       const tbody = document.querySelector("#userTable tbody");
       tbody.innerHTML = "";
 
@@ -244,7 +244,7 @@
   }
 
   function deleteUser(email) {
-    axios.delete("https://smart-iot-senser.onrender.com:3000/deleteUser", {
+    axios.delete("https://smart-iot-senser.onrender.com/deleteUser", {
       data: { email }
     })
     .then(() => {
@@ -288,7 +288,7 @@
     const role = document.getElementById("updateRole").value;
     const selectedDeviceIds = Array.from(document.getElementById("updateDevices").selectedOptions).map(opt => opt.value);
 
-    axios.put("https://smart-iot-senser.onrender.com:3000/updateUser", {
+    axios.put("https://smart-iot-senser.onrender.com/updateUser", {
       email: currentUpdateEmail,
       fullName,
       role,
