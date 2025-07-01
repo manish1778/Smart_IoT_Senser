@@ -84,8 +84,7 @@ client.on('message', (topic, value) => {
 
 app.get("/findAllUsers", async (request, response) => {
   try {
-
-    await mongoose.connect('mongodb://localhost:27017/iotdb');
+    await mongoose.connect(process.env.DB_ENV);
 
     const result = await UserModel.find({}).lean();
 
